@@ -7,10 +7,10 @@
 ##
 
 import sys
-from model import Settings, Trade
+from model import Settings, Trade, Candle
 
 def set_candle_format(GAME):
-    arr = GAME.settings.candle_format.split(',')
+    arr = GAME.settings.candle_txt.split(',')
     for idx, key in enumerate(arr):
         if key == "pair":
             GAME.settings.candle_format.pair_idx = idx
@@ -88,7 +88,7 @@ def get_settings(GAME, av):
             return print("invalid settings")
     if av[1] == "candle_format":
         try:
-            GAME.settings.candle_format = str(av[2])
+            GAME.settings.candle_txt = str(av[2])
             GAME.settings.count += 1
             set_candle_format(GAME)
         except ValueError:
@@ -97,9 +97,53 @@ def get_settings(GAME, av):
         GAME.settings.full = True
         print("Settings full")
 
-
 def get_candle(GAME, av):
+    if len(av) < 4:
+        return
+    candles = av[3].split(';')
+    for candle in candles:
+        arr = candle.split(',')
+        if arr[GAME.settings.candle_format.pair_idx] == "BTC_ETH":
+            GAME.btc_eth_candles.addCandle(GAME, arr)
+        if arr[GAME.settings.candle_format.pair_idx] == "USDT_ETH":
+            GAME.usdt_eth_candles.addCandle(GAME, arr)
+        if arr[GAME.settings.candle_format.pair_idx] == "USDT_BTC":
+            GAME.usdt_btc_candles.addCandle(GAME, arr)
 
+def update_stacks(GAME, av):
+    if len(av) < 4:
+        return
+    stacks = av[3].split(',')
+    for stack in stacks:
+        arr = stack.split(':')
+        if arr[0] == "BTC":
+            try:
+                GAME.BTC = float(arr[1])
+            except ValueError:
+                pass
+        if arr[0] == "ETH":
+            try:
+                GAME.ETH = float(arr[1])
+            except ValueError:
+                pass
+        if arr[0] == "USDT":
+            try:
+                GAME.USDT = float(arr[1])
+            except ValueError:
+                pass
+
+def make_action(GAME, av):
+    print("pass")
+
+def get_commands(GAME, av):
+    if len(av) < 3:
+        return
+    if av[0] == "action":
+        return make_action(GAME, av)
+    if av[0] == "update" and av[1] == "game" and av[2] == "next_candles":
+        return get_candle(GAME, av)
+    if av[0] == "update" and av[1] == "game" and av[2] == "stacks":
+        return update_stacks(GAME, av)
 
 def main():
     GAME = Trade()
@@ -112,7 +156,7 @@ def main():
         if GAME.settings.full is False:
             get_settings(GAME, av)
         else:
-            get_candle(GAME, av)
+            get_commands(GAME, av)
 
 if __name__ == "__main__":
     main()
