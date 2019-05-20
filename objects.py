@@ -5,6 +5,9 @@
 ## model
 ##
 
+from statistics import pstdev
+from compute import compute_slide_mean
+
 class CandleFormat():
     pair_idx = 0
     date_idx = 0
@@ -23,10 +26,18 @@ class Candle():
     close_val = 0
     volume_val = 0
 
+class CandleStat():
+    sigma = 0
+    moving_average = 0
+    bollinger_min = 0
+    bollinger_max = 0
+    enough = False
+
 class CandleList():
     def __init__(self, pair):
         self.pair = pair
         self.candles = []
+        self.stat = []
 
     def getCandleCount(self):
         return len(self.candles)
@@ -37,9 +48,23 @@ class CandleList():
         if self.candles[-1:].open > self.candles[-1:].close:
             return False
         return True
+
+    def computeStat(self, GAME, stat):
+        arr = []
+        if self.getCandleCount() > GAME.n_latest:
+            for candle in self.candles[-GAME.n_latest:]:
+                arr.append(candle.close_val)
+            stat.sigma = pstdev(arr)
+            stat.enough = True
+            stat.moving_average = compute_slide_mean(arr, GAME.n_latest)
+            stat.bollinger_max = stat.moving_average + (GAME.bollinger_coef * stat.sigma)
+            stat.bollinger_min = stat.moving_average - (GAME.bollinger_coef * stat.sigma)
+
+        self.stat.append(stat)
     
     def addCandle(self, GAME, arr):
         candle = Candle()
+        stat = CandleStat()
         for idx, value in enumerate(arr):
             if GAME.settings.candle_format.date_idx == idx:
                 try:
@@ -72,6 +97,9 @@ class CandleList():
                 except ValueError:
                     return
         self.candles.append(candle)
+        self.computeStat(GAME, stat)
+
+
 
 class Settings():
     def __init__(self, *args, **kwargs):
@@ -93,6 +121,9 @@ class Trade():
     BTC = 0.0
     ETH = 0.0
     USDT = 0.0
+
+    n_latest = 7
+    bollinger_coef = 2
     def __init__(self, *args, **kwargs):
         self.settings = Settings()
         self.btc_eth_candles = CandleList("BTC_ETH")

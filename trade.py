@@ -38,6 +38,8 @@ def main():
             get_settings(GAME, av)
         else:
             get_commands(GAME, av)
+        # if len(GAME.usdt_btc_candles.stat) > 0:
+        #     print(GAME.usdt_btc_candles.stat[-1:][0].bollinger_max)
 
 if __name__ == "__main__":
     main()
