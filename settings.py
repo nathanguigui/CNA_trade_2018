@@ -91,4 +91,3 @@ def get_settings(GAME, av):
             return
     if GAME.settings.count == 9:
         GAME.settings.full = True
-        print("Settings full")

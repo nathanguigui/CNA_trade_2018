@@ -31,6 +31,11 @@ class CandleStat():
     moving_average = 0
     bollinger_min = 0
     bollinger_max = 0
+    upward_change = 0
+    downward_change = 0
+    exponential_moving_average_up = 0
+    exponential_moving_average_down = 0
+    relative_strength_index = 0
     enough = False
 
 class CandleList():
@@ -42,6 +47,60 @@ class CandleList():
     def getCandleCount(self):
         return len(self.candles)
 
+    def getLastCandle(self):
+        if len(self.candles) < 1:
+            return None
+        return self.candles[-1:][0]
+
+    def getLastStat(self):
+        if len(self.stat) < 1:
+            return None
+        return self.stat[-1:][0]
+
+    def computeExpMovAvUp(self, GAME):
+        idx = self.getCandleCount() - 2
+        last_stat = self.getLastStat()
+        prev_stat = self.stat[idx]
+        a = 2 / (1 + GAME.n_latest)
+        mme = float(last_stat.upward_change * a + prev_stat.exponential_moving_average_up * (1 - a))
+        return (mme)
+
+    def computeExpMovAvDown(self, GAME):
+        idx = self.getCandleCount() - 2
+        last_stat = self.getLastStat()
+        prev_stat = self.stat[idx]
+        a = 2 / (1 + GAME.n_latest)
+        mme = float(last_stat.downward_change * a + prev_stat.exponential_moving_average_down * (1 - a))
+        return (mme)
+
+    def computeUpDownwardChange(self, GAME, stat):
+        idx = self.getCandleCount() - 2
+        last = self.getLastCandle()
+        prev = self.candles[idx]
+        if last.close_val > prev.close_val:
+            stat.upward_change = last.close_val - prev.close_val
+            stat.downward_change = 0
+        elif last.close_val < prev.close_val:
+            stat.upward_change = 0
+            stat.downward_change = prev.close_val - last.close_val
+        else:
+            stat.upward_change = 0
+            stat.downward_change = 0
+
+    def gonnaFall(self):
+        candle = self.getLastCandle()
+        stat = self.getLastStat()
+        band_size = stat.bollinger_max - stat.bollinger_min
+        close_pos = candle.close_val - stat.bollinger_min
+        return float((close_pos / band_size) * 0.95)
+
+    def gonnaGrow(self):
+        candle = self.getLastCandle()
+        stat = self.getLastStat()
+        band_size = stat.bollinger_max - stat.bollinger_min
+        close_pos = candle.close_val - stat.bollinger_min
+        return float(((band_size - close_pos) / band_size) * 0.95)
+
     def isGrowing(self):
         if len(self.candles) < 1:
             return None
@@ -51,6 +110,9 @@ class CandleList():
 
     def computeStat(self, GAME, stat):
         arr = []
+        if self.getCandleCount() > 1:
+            self.computeUpDownwardChange(GAME, stat)
+
         if self.getCandleCount() > GAME.n_latest:
             for candle in self.candles[-GAME.n_latest:]:
                 arr.append(candle.close_val)
@@ -59,6 +121,9 @@ class CandleList():
             stat.moving_average = compute_slide_mean(arr, GAME.n_latest)
             stat.bollinger_max = stat.moving_average + (GAME.bollinger_coef * stat.sigma)
             stat.bollinger_min = stat.moving_average - (GAME.bollinger_coef * stat.sigma)
+            stat.exponential_moving_average_up = self.computeExpMovAvUp(GAME)
+            stat.exponential_moving_average_down = self.computeExpMovAvDown(GAME)
+            stat.relative_strength_index = stat.exponential_moving_average_up / (stat.exponential_moving_average_up + abs(stat.exponential_moving_average_down)) * 100
 
         self.stat.append(stat)
     

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 ##
 ## EPITECH PROJECT, 2019
 ## trade_2018
@@ -26,7 +25,7 @@ def get_commands(GAME, av):
     if av[0] == "update" and av[1] == "game" and av[2] == "stacks":
         return update_stacks(GAME, av)
 
-def main():
+def my_bot():
     GAME = Trade()
     while True:
         try:
@@ -38,8 +37,5 @@ def main():
             get_settings(GAME, av)
         else:
             get_commands(GAME, av)
-        # if len(GAME.usdt_btc_candles.stat) > 0:
-        #     print(GAME.usdt_btc_candles.stat[-1:][0].bollinger_max)
-
-if __name__ == "__main__":
-    main()
+        if len(GAME.usdt_btc_candles.stat) > GAME.n_latest:
+            print(GAME.usdt_btc_candles.getLastStat().relative_strength_index)
