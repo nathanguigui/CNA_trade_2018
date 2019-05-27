@@ -12,3 +12,11 @@ def compute_slide_mean(arr, period):
         mean += float(value)
     mean /= period
     return mean
+
+def compute_expo_moving_av(val, period, mme_past, count):
+    if count == 1:
+        return val
+    else:
+        a = 2 / (1 + period)
+        mme = float(val * a + mme_past * (1 - a))
+        return mme

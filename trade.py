@@ -13,7 +13,12 @@ from settings import get_settings
 from candle import get_candle, update_stacks
 
 def make_action(GAME, av):
-    print("pass")
+    if GAME.usdt_btc_candles.makeAction(GAME) == "BUY" and GAME.countMaxPlacement("USDT", GAME.usdt_btc_candles.getLastCandle().close_val, 1) != 0:
+        print("buy USDT_BTC " + str(GAME.countMaxPlacement("USDT", GAME.usdt_btc_candles.getLastCandle().close_val, 1)))
+    elif GAME.usdt_btc_candles.makeAction(GAME) == "SELL" and GAME.BTC != 0:
+        print("sell USDT_BTC " + str(GAME.BTC))
+    else:
+        print("pass")
 
 def get_commands(GAME, av):
     if len(av) < 3:
@@ -31,11 +36,9 @@ def my_bot():
         try:
             line = input()
         except(KeyboardInterrupt, EOFError):
-            sys.exit(84)
+            break
         av = line.split(' ')
         if GAME.settings.full is False:
             get_settings(GAME, av)
         else:
             get_commands(GAME, av)
-        if len(GAME.usdt_btc_candles.stat) > GAME.n_latest:
-            print(GAME.usdt_btc_candles.getLastStat().relative_strength_index)
