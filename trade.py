@@ -11,14 +11,7 @@ from objects import Trade
 
 from settings import get_settings
 from candle import get_candle, update_stacks
-
-def make_action(GAME, av):
-    if GAME.usdt_btc_candles.makeAction(GAME) == "BUY" and GAME.countMaxPlacement("USDT", GAME.usdt_btc_candles.getLastCandle().close_val, 1) != 0:
-        print("buy USDT_BTC " + str(GAME.countMaxPlacement("USDT", GAME.usdt_btc_candles.getLastCandle().close_val, 1)))
-    elif GAME.usdt_btc_candles.makeAction(GAME) == "SELL" and GAME.BTC != 0:
-        print("sell USDT_BTC " + str(GAME.BTC))
-    else:
-        print("pass")
+from action import make_action
 
 def get_commands(GAME, av):
     if len(av) < 3:
