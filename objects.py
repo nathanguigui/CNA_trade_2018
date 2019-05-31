@@ -48,7 +48,11 @@ class Trade():
 
     def countMaxPlacement(self, curr, price, pc):
         if curr == "USDT":
-            return float((self.USDT * pc) / price)
+            return float(((self.USDT * pc) / price) * (self.settings.transaction_fee_percent / 100))
+        if curr == "BTC":
+            return float(((self.BTC * pc) / price) * (self.settings.transaction_fee_percent / 100))
+        if curr == "ETH":
+            return float(((self.ETH * pc ) * price) * (self.settings.transaction_fee_percent / 100))
 
     def countCashOut(self, curr, price):
         if curr == "USDT":
