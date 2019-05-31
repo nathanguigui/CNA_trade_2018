@@ -210,29 +210,14 @@ class CandleList():
             return "sell"
         return "pass"
 
-    def analyzeWilliams(self):
-        idx = self.getCandleCount() - 2
-        prev_stat = self.stat[idx]
-        last_stat = self.getLastStat()
-        prev_williams = prev_stat.williams / self.getLastCandle().close_val
-        last_williams = last_stat.williams / self.getLastCandle().close_val
-        if (last_williams >= -20 and prev_williams <= -20):
-            return "sell"
-        if (last_williams <= -80 and prev_williams >= -80):
-            return "buy"
-
     def makeAction(self, GAME):
         if self.getCandleCount() < GAME.n_latest:
             return "PASS"
-        if self.analyzeWilliams() == "buy":
-            return "BUY"
         if self.getLastStat().relative_strength_index <= 30:
             if self.getLastStat().stochastic_signal <= 30:
                 return "BUY"
         if self.getLastStat().relative_strength_index >= 70:
             return "SELL"
         if self.analyzeMACD() == "sell":
-            return "SELL"
-        if self.analyzeWilliams() == "sell":
             return "SELL"
         return "PASS"

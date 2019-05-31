@@ -34,7 +34,6 @@ class Trade():
     bollinger_coef = 1.4
     MACD_period = [12, 26, 9]
     williams_period = 14
-
     current_action = []
 
     def __init__(self, *args, **kwargs):
@@ -47,12 +46,15 @@ class Trade():
         self.usdt_btc_investment = InvestmentHistory("USDT_BTC")
 
     def countMaxPlacement(self, curr, price, pc):
+        USDT = self.USDT * pc
+        BTC = self.BTC * pc
+        ETH = self.ETH * pc
         if curr == "USDT":
-            return float(((self.USDT * pc) / price) * (self.settings.transaction_fee_percent / 100))
-        if curr == "BTC":
-            return float(((self.BTC * pc) / price) * (self.settings.transaction_fee_percent / 100))
+            return float(USDT / price)
         if curr == "ETH":
-            return float(((self.ETH * pc ) * price) * (self.settings.transaction_fee_percent / 100))
+            return float((ETH / price) - ((ETH / price) * (self.settings.transaction_fee_percent / 100)))
+        if curr == "BTC":
+            return float((BTC / price) - ((BTC / price) * (self.settings.transaction_fee_percent / 100)))
 
     def countCashOut(self, curr, price):
         if curr == "USDT":
