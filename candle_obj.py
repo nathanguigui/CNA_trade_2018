@@ -194,9 +194,17 @@ class CandleList():
         self.stat.append(stat)
     
     def analyzeBollinger(self):
-        max_val = self.getLastStat().bollinger_max - self.getLastStat().bollinger_min
-        val = self.getLastCandle().close_val - self.getLastStat().bollinger_min
-        return (float(val / max_val))
+        arr = self.stat[-5:]
+        bollinger_bandwith = []
+        bollinger_mean = 0
+        for val in arr:
+            bollinger_bandwith.append(val.bollinger_max - val.bollinger_min)
+            bollinger_mean += val.bollinger_max - val.bollinger_min
+        bollinger_mean /= 5
+        if bollinger_mean * 1.3 < self.getLastStat().bollinger_max - self.getLastStat().bollinger_min:
+            return "sell"
+        if (bollinger_mean - bollinger_mean * 0.4) > self.getLastStat().bollinger_max - self.getLastStat().bollinger_min:
+            return "buy"
 
     def analyzeMACD(self):
         idx = self.getCandleCount() - 2
@@ -210,14 +218,29 @@ class CandleList():
             return "sell"
         return "pass"
 
+    def analyzeWilliams(self):
+        arr = self.candles[-5:]
+        williams = []
+        for val in arr:
+            williams.append(val.williams)
+        if pstdev(williams) < 80:
+            return "pass"
+        else:
+            return "act"
+
     def makeAction(self, GAME):
         if self.getCandleCount() < GAME.n_latest:
             return "PASS"
+        # if self.analyzeBollinger() == "buy":
+        if self.analyzeMACD() == "buy":
+            return "BUY"
         if self.getLastStat().relative_strength_index <= 30:
             if self.getLastStat().stochastic_signal <= 30:
                 return "BUY"
-        if self.getLastStat().relative_strength_index >= 70:
-            return "SELL"
-        if self.analyzeMACD() == "sell":
-            return "SELL"
+        if self.analyzeBollinger() == "sell":
+            if self.getLastStat().relative_strength_index >= 70:
+                if self.getLastStat().stochastic_signal >= 70:
+                    return "SELL"
+                if self.analyzeMACD() == "sell":
+                    return "SELL"
         return "PASS"
